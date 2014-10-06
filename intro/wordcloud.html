@@ -1,0 +1,391 @@
+<!DOCTYPE HTML>
+<html lang="en-US" >
+    
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>wordcloud | Quantitative Text Analysis with R</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 1.1.0">
+        <meta name="HandheldFriendly" content="true"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="apple-touch-icon-precomposed" sizes="152x152" href="../gitbook/images/apple-touch-icon-precomposed-152.png">
+        <link rel="shortcut icon" href="../gitbook/images/favicon.ico" type="image/x-icon">
+        
+    
+    
+    
+    <link rel="next" href="../intro/data.html" />
+    
+    
+    <link rel="prev" href="../intro/overview.html" />
+    
+
+        
+    </head>
+    <body>
+        
+        
+<link rel="stylesheet" href="../gitbook/style.css">
+
+
+        
+    <div class="book" data-level="1.1" data-basepath=".." data-revision="1412615592274">
+    
+
+<div class="book-summary">
+    <div class="book-search">
+        <input type="text" placeholder="Type to search" class="form-control" />
+    </div>
+    <ul class="summary">
+        
+    	
+    	
+    	
+
+        
+
+        
+    
+        
+        <li class="chapter " data-level="0" data-path="index.html">
+            
+                
+                    <a href="../index.html">
+                        <i class="fa fa-check"></i>
+                        
+                         Introduction
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1" data-path="intro/overview.html">
+            
+                
+                    <a href="../intro/overview.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.</b>
+                        
+                         Overview
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter active" data-level="1.1" data-path="intro/wordcloud.html">
+            
+                
+                    <a href="../intro/wordcloud.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.1.</b>
+                        
+                         wordcloud
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="1.2" data-path="intro/data.html">
+            
+                
+                    <a href="../intro/data.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>1.2.</b>
+                        
+                         Data package
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2" data-path="chap1/corpus.html">
+            
+                
+                    <a href="../chap1/corpus.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.</b>
+                        
+                         Corpus Sources
+                    </a>
+                
+            
+            
+            <ul class="articles">
+                
+    
+        
+        <li class="chapter " data-level="2.1" data-path="chap1/fromfiles.html">
+            
+                
+                    <a href="../chap1/fromfiles.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.1.</b>
+                        
+                         Importing from filesystem
+                    </a>
+                
+            
+            
+        </li>
+    
+        
+        <li class="chapter " data-level="2.2" data-path="chap1/fromtwitter.html">
+            
+                
+                    <a href="../chap1/fromtwitter.html">
+                        <i class="fa fa-check"></i>
+                        
+                            <b>2.2.</b>
+                        
+                         Text from a twitter search
+                    </a>
+                
+            
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+
+
+        
+        <li class="divider"></li>
+        <li>
+            <a href="http://www.gitbook.io/" target="blank" class="gitbook-link">Published using GitBook</a>
+        </li>
+        
+    </ul>
+</div>
+
+    <div class="book-body">
+        <div class="body-inner">
+            <div class="book-header">
+    <!-- Actions Left -->
+    <a href="#" class="btn pull-left toggle-summary" aria-label="Toggle summary"><i class="fa fa-align-justify"></i></a>
+    <a href="#" class="btn pull-left toggle-search" aria-label="Toggle search"><i class="fa fa-search"></i></a>
+    
+    <div id="font-settings-wrapper" class="dropdown pull-left">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle font settings"><i class="fa fa-font"></i>
+        </a>
+        <div class="dropdown-menu font-settings">
+    <div class="dropdown-caret">
+        <span class="caret-outer"></span>
+        <span class="caret-inner"></span>
+    </div>
+
+    <div class="buttons">
+        <button type="button" id="reduce-font-size" class="button size-2">A</button>
+        <button type="button" id="enlarge-font-size" class="button size-2">A</button>
+    </div>
+
+    <div class="buttons font-family-list">
+        <button type="button" data-font="0" class="button">Serif</button>
+        <button type="button" data-font="1" class="button">Sans</button>
+    </div>
+
+    <div class="buttons color-theme-list">
+        <button type="button" id="color-theme-preview-0" class="button size-3" data-theme="0">White</button>
+        <button type="button" id="color-theme-preview-1" class="button size-3" data-theme="1">Sepia</button>
+        <button type="button" id="color-theme-preview-2" class="button size-3" data-theme="2">Night</button>
+    </div>
+</div>
+
+    </div>
+
+    <!-- Actions Right -->
+    
+    <div class="dropdown pull-right">
+        <a href="#" class="btn toggle-dropdown" aria-label="Toggle share dropdown"><i class="fa fa-share-alt"></i>
+        </a>
+        <div class="dropdown-menu font-settings dropdown-left">
+            <div class="dropdown-caret">
+                <span class="caret-outer"></span>
+                <span class="caret-inner"></span>
+            </div>
+            <div class="buttons">
+                <button type="button" data-sharing="twitter" class="button">Twitter</button>
+                <button type="button" data-sharing="google-plus" class="button">Google</button>
+                <button type="button" data-sharing="facebook" class="button">Facebook</button>
+                <button type="button" data-sharing="weibo" class="button">Weibo</button>
+                <button type="button" data-sharing="instapaper" class="button">Instapaper</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <a href="#" target="_blank" class="btn pull-right google-plus-sharing-link sharing-link" data-sharing="google-plus" aria-label="Share on Google Plus"><i class="fa fa-google-plus"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right facebook-sharing-link sharing-link" data-sharing="facebook" aria-label="Share on Facebook"><i class="fa fa-facebook"></i></a>
+    
+    
+    <a href="#" target="_blank" class="btn pull-right twitter-sharing-link sharing-link" data-sharing="twitter" aria-label="Share on Twitter"><i class="fa fa-twitter"></i></a>
+    
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="../" >Quantitative Text Analysis with R</a>
+    </h1>
+</div>
+
+            <div class="page-wrapper" tabindex="-1">
+                <div class="page-inner">
+                
+                
+                    <section class="normal" id="section-gitbook_7">
+                    
+                        <h2 id="example">Example</h2>
+<pre><code class="lang-r"><span class="hljs-keyword">library</span>(quanteda)
+<span class="hljs-comment"># create a corpus from the immigration texts from UK party platforms</span>
+uk2010immigCorpus &lt;- corpus(uk2010immig,
+                            docvars=data.frame(party=names(uk2010immig)),
+                            notes=<span class="hljs-string">"Immigration-related sections of 2010 UK party manifestos"</span>,
+                            enc=<span class="hljs-string">"UTF-8"</span>)
+</code></pre>
+<pre><code>##   note: converted texts from UTF-8 to UTF-8.
+</code></pre><pre><code class="lang-r">uk2010immigCorpus
+</code></pre>
+<pre><code>## Corpus consisting of 9 documents.
+</code></pre><pre><code class="lang-r">summary(uk2010immigCorpus, showmeta=<span class="hljs-literal">TRUE</span>)
+</code></pre>
+<pre><code>## Corpus consisting of 9 documents.
+## 
+##          Text Types Tokens Sentences        party _encoding
+##           BNP   969   2765       130          BNP     UTF-8
+##     Coalition   133    231        12    Coalition     UTF-8
+##  Conservative   234    452        15 Conservative     UTF-8
+##        Greens   301    608        29       Greens     UTF-8
+##        Labour   279    615        29       Labour     UTF-8
+##        LibDem   239    434        22       LibDem     UTF-8
+##            PC    72    101         5           PC     UTF-8
+##           SNP    81    124         4          SNP     UTF-8
+##          UKIP   303    625        41         UKIP     UTF-8
+## 
+## Source:  /home/paul/Dropbox/QUANTESS/testbook/intro/* on x86_64 by paul.
+## Created: Mon Oct  6 18:13:09 2014.
+## Notes:   Immigration-related sections of 2010 UK party manifestos.
+</code></pre><pre><code class="lang-r"><span class="hljs-comment"># key words in context for "deport", 3 words of context</span>
+kwic(uk2010immigCorpus, <span class="hljs-string">"deport"</span>, <span class="hljs-number">3</span>)
+</code></pre>
+<pre><code>##                                               preword         word
+##     [BNP, 71]                further immigration, the deportation 
+##    [BNP, 139]                            The BNP will    deport   
+##   [BNP, 1628] long-term resettlement programme.\n\n2.    Deport   
+##   [BNP, 1633]          illegal immigrants\n\nWe shall    deport   
+##   [BNP, 1653]                current unacceptably lax deportation 
+##   [BNP, 1659]                           of people are   deported  
+##   [BNP, 2169]                     enforced by instant deportation,
+##   [BNP, 2180]         British immigration laws.\n\n8. Deportation 
+##   [BNP, 2186]           Foreign Criminals\n\nWe shall    deport   
+##   [BNP, 2198]                       This includes the deportation 
+## [Greens, 566]                      subject to summary deportation.
+## [LibDem, 194]         illegal labour.\n\n- Prioritise deportation 
+## [LibDem, 394]                  flight risks.\n\n- End deportations
+##   [UKIP, 317]                            laws or face deportation.
+##                                   postword
+##     [BNP, 71] of all illegal              
+##    [BNP, 139] all foreigners convicted    
+##   [BNP, 1628] all illegal immigrants\n\nWe
+##   [BNP, 1633] all illegal immigrants      
+##   [BNP, 1653] policies, thousands of      
+##   [BNP, 1659] from the UK                 
+##   [BNP, 2169] for anyone found            
+##   [BNP, 2180] of all Foreign              
+##   [BNP, 2186] all criminal entrants,      
+##   [BNP, 2198] of all Muslim               
+## [Greens, 566] They should receive         
+## [LibDem, 194] efforts on criminals,       
+## [LibDem, 394] of refugees to              
+##   [UKIP, 317] Such citizens will
+</code></pre><pre><code class="lang-r"><span class="hljs-comment"># create a dfm, removing stopwords</span>
+mydfm &lt;- dfm(uk2010immigCorpus, stopwords=<span class="hljs-literal">TRUE</span>)
+</code></pre>
+<pre><code>## Creating dfm from a corpus: ...  removing stopwords ...  done.
+</code></pre><pre><code class="lang-r">dim(mydfm)              <span class="hljs-comment"># basic dimensions of the dfm</span>
+</code></pre>
+<pre><code>## [1]    9 1491
+</code></pre><pre><code class="lang-r">topfeatures(mydfm, <span class="hljs-number">20</span>)  <span class="hljs-comment"># 20 top words</span>
+</code></pre>
+<pre><code>##        will immigration     british      people      asylum     britain 
+##          86          66          37          35          29          28 
+##      system          uk  population     country         new      ensure 
+##          27          27          21          20          19          17 
+##  immigrants       shall citizenship    national      social         bnp 
+##          17          17          16          14          14          13 
+##     illegal        work 
+##          13          13
+</code></pre><pre><code class="lang-r">quartz()
+</code></pre>
+<pre><code>## Warning: Quartz device is not available on this platform
+</code></pre><pre><code class="lang-r">plot(mydfm)             <span class="hljs-comment"># word cloud</span>
+</code></pre>
+<p><img src="figure/quanteda_example.png" alt="plot of chunk quanteda_example"> </p>
+
+                    
+                    </section>
+                
+                
+                </div>
+            </div>
+        </div>
+
+        
+        <a href="../intro/overview.html" class="navigation navigation-prev " aria-label="Previous page: Overview"><i class="fa fa-angle-left"></i></a>
+        
+        
+        <a href="../intro/data.html" class="navigation navigation-next " aria-label="Next page: Data package"><i class="fa fa-angle-right"></i></a>
+        
+    </div>
+</div>
+
+        
+<script src="../gitbook/app.js"></script>
+
+    
+    <script src="https://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+    
+    <script src="../gitbook/plugins/gitbook-plugin-mathjax/plugin.js"></script>
+    
+
+<script>
+require(["gitbook"], function(gitbook) {
+    var config = {"fontSettings":{"theme":null,"family":"sans","size":2}};
+    gitbook.start(config);
+});
+</script>
+
+        
+    </body>
+    
+</html>
