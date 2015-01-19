@@ -8,7 +8,7 @@
 #' @param data the dfm on which the model will be fit.  Does not need to
 #'   contain only the training documents, since the index of these will be
 #'   matched automatically.
-#' @param scores vector of training scores associated with each document 
+#' @param y vector of training scores associated with each document 
 #'   identified in \code{refData}
 #' @param smooth a smoothing parameter for word counts; defaults to zero for the 
 #' to match the LBG (2003) method.
@@ -32,20 +32,26 @@
 #'   Transformation Procedure for Interpreting Political Text." Political
 #'   Analysis 16(1): 93-100.
 #' @export
-textmodel_wordscores <- function(data, scores,
+textmodel_wordscores <- function(data, y,
                                  scale=c("linear", "logit"), smooth=0) {
     scale <- match.arg(scale)
     
     if (length(data) < 2)
         stop("wordscores model requires at least two training documents.")
-    if (nrow(data) != length(scores))
+    if (nrow(data) != length(y))
         stop("trainingdata and scores vector must refer to same number of documents.")
     
-    inRefSet <- which(!is.na(scores))
-    if (!is.numeric(scores[inRefSet]))
+    inRefSet <- which(!is.na(y))
+    if(!is.numeric(y[inRefSet])){
+        print(sprintf('Wordscores model requires numeric scores, but y is a %s. Attempting to convert to numeric. ', class(y)))
+        print(transformOrdinal(y))
+        y <- transformOrdinal(y)
+    }
+    
+    if (!is.numeric(y[inRefSet]))
         stop("wordscores model requires numeric scores.")
     
-    setscores <- scores[inRefSet] # only non-NA reference texts
+    setscores <- y[inRefSet] # only non-NA reference texts
     data <- data + smooth         # add one to all word counts
     x <- data[inRefSet, ]         # select only the reference texts
     
@@ -61,11 +67,11 @@ textmodel_wordscores <- function(data, scores,
             stop("\nFor logit scale, only two training texts can be used.")
         if (sum(setscores) != 0) {
             warning("\nFor logit scale, training scores are automatically rescaled to -1 and 1.")
-            scores <- rescaler(setscores)
+            y <- rescaler(setscores)
         }
         lower <- 1
         upper <- 2
-        if (scores[1] > scores[2]) { lower <- 2; upper <- 1 }
+        if (y[1] > y[2]) { lower <- 2; upper <- 1 }
         Sw <- log(Pwr[, upper]) - log(Pwr[, lower])
     }
     
@@ -73,7 +79,7 @@ textmodel_wordscores <- function(data, scores,
     Sw <- as.vector(Sw[which(colSums(x) > 0)])  # remove words with zero counts in ref set
     names(Sw) <- namesTemp[which(colSums(x) > 0)]
     
-    model <- list(pi = Sw, data=data, scores=scores)
+    model <- list(wordWeights = Sw, data=data, y=y)
     class(model) <- c("wordscores", "list")
     return(model)
 }
@@ -102,10 +108,10 @@ predict.wordscores <- function(object, newdata=NULL, rescaling = "none",
         data <- as.dfm(newdata)
     else data <- object$data
     
-    featureIndex <- match(names(object$pi), features(data))
+    featureIndex <- match(names(object$wordWeights), features(data))
     
-    scorable <- which(colnames(data) %in% names(object$pi))
-    pi <- object$pi[features(data)[scorable]]
+    scorable <- which(colnames(data) %in% names(object$wordWeights))
+    wordWeights <- object$wordWeights[features(data)[scorable]]
     cat(paste(length(scorable), " of ", nfeature(data), " features (",
                   round(100*length(scorable)/nfeature(data), 2),
                   "%) can be scored\n\n", sep=""))
@@ -115,12 +121,12 @@ predict.wordscores <- function(object, newdata=NULL, rescaling = "none",
     #scorable.newd <- Fw[, featureIndex]  # then exclude any features not found/scored
     scorable.newd <- subset(data, select=scorable)
     ## NOTE: This is different from computing term weights on only the scorable words
-    textscore_raw <- tf(scorable.newd) %*% pi
+    textscore_raw <- tf(scorable.newd) %*% wordWeights
     
     textscore_raw_se <- rep(NA, length(textscore_raw))
     Fwv <- tf(scorable.newd)
     for (i in 1:length(textscore_raw_se))
-        textscore_raw_se[i] <- sqrt(sum(Fwv[i, , drop=FALSE] * (textscore_raw[i] - pi)^2)) / sqrt(rowSums(scorable.newd)[i])
+        textscore_raw_se[i] <- sqrt(sum(Fwv[i, , drop=FALSE] * (textscore_raw[i] - wordWeights)^2)) / sqrt(rowSums(scorable.newd)[i])
     
     z <- qnorm(1 - (1-level)/2)
     
@@ -132,18 +138,18 @@ predict.wordscores <- function(object, newdata=NULL, rescaling = "none",
     if ("mv" %in% rescaling) {
         if (sum(!is.na(object$scores)) > 2)
             warning("\nMore than two reference scores found with MV rescaling; using only min, max values.")
-        lowerIndex <- which(object$scores==min(object$scores, na.rm=TRUE))
-        upperIndex <- which(object$scores==max(object$scores, na.rm=TRUE))
+        lowerIndex <- which(object$y==min(object$y, na.rm=TRUE))
+        upperIndex <- which(object$y==max(object$y, na.rm=TRUE))
         textscore_mv <-
             (textscore_raw - textscore_raw[lowerIndex]) *
-            (max(object$scores, na.rm=TRUE) - min(object$scores, na.rm=TRUE)) /
+            (max(object$y, na.rm=TRUE) - min(object$y, na.rm=TRUE)) /
             (textscore_raw[upperIndex] - textscore_raw[lowerIndex]) +
-            min(object$scores, na.rm=TRUE)
+            min(object$y, na.rm=TRUE)
         result$textscore_mv <- textscore_mv
     } 
     
     if ("lbg" %in% rescaling) {
-        SDr <- sd(object$scores, na.rm=TRUE)
+        SDr <- sd(object$y, na.rm=TRUE)
         Sv <- mean(textscore_raw, na.rm=TRUE)
         SDv <- ifelse(length(textscore_raw)<2, 0, sd(textscore_raw))
         mult <- ifelse(SDv==0, 0, SDr/SDv)
@@ -181,12 +187,12 @@ rescaler <- function(x, scale.min=-1, scale.max=1) {
 print.wordscores <- function(x, n=30L, ...) {
     cat("\nReference documents and reference scores:\n\n")
     print(data.frame(Documents=docnames(x$data),
-                     `Ref scores`=x$scores), ...)
+                     `Ref scores`=x$y), ...)
     cat("\nWord scores: ")
-    if (length(x$pi) > n)
+    if (length(x$wordWeights) > n)
         cat("showing first", n, "scored features ...")
     cat("\n\n")
-    print(head(x$pi, n), ...)
+    print(head(x$wordWeights, n), ...)
 }
 
 
@@ -202,7 +208,7 @@ summary.wordscores <- function(object, ...) {
                      Max=apply(object$data, 1, max),
                      Mean=apply(object$data, 1, mean),
                      Median=apply(object$data, 1, median),
-                     Score=object$score)
+                     Score=object$y)
     rownames(dd) <- docnames(object$data)
     print(dd, ...)
     invisible(dd)

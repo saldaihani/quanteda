@@ -68,7 +68,7 @@ textmodel.dfm <- function(x, y=NULL, model=c("wordscores", "NB", "wordfish", "ld
         result <- textmodel_wordfish(x, ...)
     } else if (model=="lda") {
         if (!is.null(y))
-            warning("y values not used with wordfish model. ")
+            warning("y values not used with LDA model. ")
         result <- textmodel_lda(x, ...)
     } else {
         stop(paste("model", method, "not implemented."))
