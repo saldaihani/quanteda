@@ -4,14 +4,14 @@
 \alias{textmodel_wordscores}
 \title{Wordscores text model}
 \usage{
-textmodel_wordscores(data, scores, scale = c("linear", "logit"), smooth = 0)
+textmodel_wordscores(data, y, scale = c("linear", "logit"), smooth = 0)
 }
 \arguments{
 \item{data}{the dfm on which the model will be fit.  Does not need to
 contain only the training documents, since the index of these will be
 matched automatically.}
 
-\item{scores}{vector of training scores associated with each document
+\item{y}{vector of training scores associated with each document
 identified in \code{refData}}
 
 \item{scale}{classic LBG linear posterior weighted word class differences, or

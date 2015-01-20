@@ -4,29 +4,37 @@
 library(quantedaData)
 library(ggplot2)
 library(dplyr)
+library(tidyr)
 data(sotuCorp)
 
 sdfm <- dfm(sotuCorp)
+
+
+
+sdfm <- trimdfm(sdfm, minCount=3, minDoc=3)
+wfmod <- textmodel(sdfm, model=('wordfish'),dir=c(-5,5))
+
+
 #sdfm <- weight(sdfm, smooth=0.1)
 
-numTargets <- transformOrdinal(docvars(sotuCorp, 'party'),c(5,-5))
 
-refScores <- rep(NA,30)
+numTargets <- transformOrdinal(docvars(sotuCorp, 'party'),c(-5,5))
 
 
-# reagan and bush2
-refScores[2] <- 5  
-refScores[18] <- 5 
 
-# clinton and obama
-refScores[10] <- -5 
-refScores[26] <- -5 
 
-wmod <- textmodel(sdfm , y=refScores, model=c("wordscores"))
-results <- predict(wmod, sdfm, rescaling = "mv")
+pr <- crossVal(sdfm, numTargets, k=30)
 
-plotdf <- data.frame(docScores = results$textscore_lbg,
-                     party=docvars(sotuCorp, 'party'),
+thetas <- wfmod$theta
+
+plotdf <- data.frame(docScores = pr$textscore_lbg,
+                     wfishScores = thetas,
                      year=docvars(sotuCorp, 'year'))
+plotdf <- gather(plotdf, 'method','score', -year)
+clrs <- plyr::mapvalues(docvars(sotuCorp,'party'), c('rep','dem'),  c('red','blue'))
 
-ploarrange(plotdf, year)
+qplot(score, paste(year), data=plotdf, colour=method) +
+    theme(axis.text.y = element_text(colour = clrs))
+
+
+

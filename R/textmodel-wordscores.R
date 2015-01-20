@@ -136,7 +136,7 @@ predict.wordscores <- function(object, newdata=NULL, rescaling = "none",
                          textscore_raw_hi = textscore_raw + z * textscore_raw_se)
     
     if ("mv" %in% rescaling) {
-        if (sum(!is.na(object$scores)) > 2)
+        if (sum(!is.na(object$y)) > 2)
             warning("\nMore than two reference scores found with MV rescaling; using only min, max values.")
         lowerIndex <- which(object$y==min(object$y, na.rm=TRUE))
         upperIndex <- which(object$y==max(object$y, na.rm=TRUE))

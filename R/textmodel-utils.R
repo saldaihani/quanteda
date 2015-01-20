@@ -21,13 +21,8 @@ transformOrdinal <- function(categories, values=NULL){
         stop(sprintf('Number of values (%d) does not equal number of categories (%d)',length(values), length(levels(catFactor)) ))
     }
     
-    newVals <- rep(values[1],length(categories))
-    i <- 2
-    while(i<=length(values)){
-        newVals[which(categories==levels(catFactor)[i])] <- values[i]
-        i <- i+1
-    }
-    return(newVals)
+    tmp <- plyr::mapvalues(categories, levels(catFactor), values)
+    return(as.numeric(tmp))
 }
 
 #' Perform cross-validation
@@ -36,28 +31,33 @@ transformOrdinal <- function(categories, values=NULL){
 #' 
 #' @param dtm A dfm containing documents and features for training and testing.
 #' @param values The 'true' target values for each document
+#' @param model The model type to use for training and predictions
 #' @param k The number of 'folds' to split the data into. Default is leave-one-out.
 #' @export
 #' @author Paul Nulty
-crossVal <- function(dtm, values, k=nrow(dtm)){
+crossVal <- function(dtm, values, k=nrow(dtm), model='wordscores'){
     foldSize <-  floor(nrow(dtm)/k)
     foldStart <- 1
-    foldEnd <- 1
-    while(foldStart < nrow(dtm)){
-        foldEnd <- foldStart+foldSize
+    foldEnd <- 0
+    heldoutPredictions <- data.frame(heldoutPredictions = c())
+    while(foldStart <= nrow(dtm)){
+        foldEnd <- foldEnd+(foldSize)
         if (foldEnd > nrow(dtm)){
             foldEnd <-  nrow(dtm)
         }
-        
-        thisTrain <- as.dfm(dtm[-(foldStart:foldEnd),])
-        trainRefs <- refs[-(foldStart:foldEnd)]
-        
-        thisHoldout <- as.dfm(dtm[foldStart:foldEnd,])
-        testRefs <- refs[foldStart:foldEnd]
-        
+        thisTrain <- as.dfm(dtm[-(foldStart:foldEnd), , drop=FALSE])
+        trainRefs <- values[-(foldStart:foldEnd)]
+        thisMod <-  textmodel(thisTrain , y=trainRefs, model=c("wordscores"))
+        print(sprintf("This holdout is %d to %d", foldStart, foldEnd))
+        thisHoldout <- as.dfm(dtm[foldStart:foldEnd, , drop=FALSE])
+        testRefs <- values[foldStart:foldEnd]
+        print(foldStart)
+        print(foldEnd)
         thisModel <- textmodel(thisTrain, trainRefs)
-        thisResult <- predict(thisModel, thisHoldout)
-        
+        thisResult <- predict(thisModel, thisHoldout, rescaling = "lbg")
+        heldoutPredictions <- rbind(heldoutPredictions, thisResult)
         foldStart <- foldStart+foldSize
+        
     }
+    return(heldoutPredictions)
 }
